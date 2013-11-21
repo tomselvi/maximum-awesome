@@ -1,10 +1,37 @@
 ENV['HOMEBREW_CASK_OPTS'] = "--appdir=/Applications"
+require 'rbconfig'
+def os
+  @os ||= (
+    host_os = RbConfig::CONFIG['host_os']
+    case host_os
+    when /mswin|msys|mingw|cygwin|bccwin|wince|emc/
+      :windows
+    when /darwin|mac os/
+      :macosx
+    when /linux/
+      :linux
+    when /solaris|bsd/
+      :unix
+    else
+      raise Exception, "unknown os: #{host_os.inspect}"
+    end
+  )
+end
 
 def brew_install(package, *options)
-  `brew list #{package}`
-  return if $?.success?
+  if os == :macosx
+    `brew list #{package}`
+    return if $?.success?
 
-  sh "brew install #{package} #{options.join ' '}"
+    sh "brew install #{package} #{options.join ' '}"
+  elsif os == :linux
+    `dpkg -s #{package}`
+    return if $?.success?
+
+    sh "sudo apt-get install #{package}"
+  else
+    raise Exception, "this installer only supports linux or mac os"
+  end
 end
 
 def install_github_bundle(user, package)
@@ -79,7 +106,7 @@ namespace :install do
   desc 'Update or Install Brew'
   task :brew do
     step 'Homebrew'
-    unless system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"')
+    unless os != :macosx || system('which brew > /dev/null || ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"')
       raise "Homebrew must be installed before continuing."
     end
   end
@@ -87,7 +114,7 @@ namespace :install do
   desc 'Install Homebrew Cask'
   task :brew_cask do
     step 'Homebrew Cask'
-    unless system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
+    unless os != :macosx || system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
       abort "Failed to tap phinze/homebrew-cask in Homebrew."
     end
 
@@ -103,8 +130,10 @@ namespace :install do
   desc 'Install iTerm'
   task :iterm do
     step 'iterm2'
-    unless app? 'iTerm'
-      brew_cask_install 'iterm2'
+    if os == :macosx
+      unless app? 'iTerm'
+        brew_cask_install 'iterm2'
+      end
     end
   end
 
@@ -126,21 +155,41 @@ namespace :install do
     brew_install 'tmux'
   end
 
+  desc 'Install zsh'
+  task :zsh do
+      step 'zsh'
+      brew_install 'zsh'
+  end
+
+  desc 'Install tig'
+  task :tig do
+      step 'tig'
+      brew_install 'tig'
+  end
+
+  desc 'Install cmatrix'
+  task :cmatrix do
+      step 'cmatrix'
+      brew_install 'cmatrix'
+  end
+
   desc 'Install MacVim'
   task :macvim do
     step 'MacVim'
-    unless app? 'MacVim'
-      brew_cask_install 'macvim'
-    end
+    if os == :macosx
+      unless app? 'MacVim'
+        brew_cask_install 'macvim'
+      end
 
-    bin_vim = File.expand_path('~/bin/vim')
-    FileUtils.mkdir_p(File.dirname(bin_vim))
-    unless File.executable?(bin_vim)
-      File.open(bin_vim, 'w', 0744) do |io|
-        io << <<-SHELL
-#!/bin/bash
-exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
-        SHELL
+      bin_vim = File.expand_path('~/bin/vim')
+      FileUtils.mkdir_p(File.dirname(bin_vim))
+      unless File.executable?(bin_vim)
+        File.open(bin_vim, 'w', 0744) do |io|
+          io << <<-SHELL
+  #!/bin/bash
+  exec /Applications/MacVim.app/Contents/MacOS/Vim "$@"
+          SHELL
+        end
       end
     end
   end
@@ -172,6 +221,8 @@ task :default do
   link_file 'tmux.conf'             , '~/.tmux.conf'
   link_file 'vimrc'                 , '~/.vimrc'
   link_file 'vimrc.bundles'         , '~/.vimrc.bundles'
+  link_file 'zsrhc'                 , '~/.zshrc'
+  link_file 'rc'                    , '~/.rc'
   unless File.exist?(File.expand_path('~/.vimrc.local'))
     cp File.expand_path('vimrc.local'), File.expand_path('~/.vimrc.local'), :verbose => true
   end
@@ -182,14 +233,15 @@ task :default do
   # Install Vundle and bundles
   Rake::Task['install:vundle'].invoke
 
-  step 'iterm2 colorschemes'
-  colorschemes = `defaults read com.googlecode.iterm2 'Custom Color Presets'`
-  dark  = colorschemes !~ /Solarized Dark/
-  light = colorschemes !~ /Solarized Light/
-  sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Dark.itermcolors')) if dark
-  sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Light.itermcolors')) if light
-
-  step 'iterm2 profiles'
+  if os == :macosx
+    step 'iterm2 colorschemes'
+    colorschemes = `defaults read com.googlecode.iterm2 'Custom Color Presets'`
+    dark  = colorschemes !~ /Solarized Dark/
+    light = colorschemes !~ /Solarized Light/
+    sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Dark.itermcolors')) if dark
+    sh('open', '-a', '/Applications/iTerm.app', File.expand_path('iterm2-colors-solarized/Solarized Light.itermcolors')) if light
+    step 'iterm2 profiles'
+  end
   puts
   puts "  Your turn!"
   puts
