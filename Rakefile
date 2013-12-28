@@ -114,17 +114,26 @@ namespace :install do
   desc 'Install Homebrew Cask'
   task :brew_cask do
     step 'Homebrew Cask'
-    unless os != :macosx || system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
-      abort "Failed to tap phinze/homebrew-cask in Homebrew."
-    end
+    if os == :macosx
+      unless system('brew tap | grep phinze/cask > /dev/null') || system('brew tap phinze/homebrew-cask')
+        abort "Failed to tap phinze/homebrew-cask in Homebrew."
+      end
 
-    brew_install 'brew-cask'
+      brew_install 'brew-cask'
+    end
   end
 
   desc 'Install The Silver Searcher'
   task :the_silver_searcher do
     step 'the_silver_searcher'
-    brew_install 'the_silver_searcher'
+    if os == :macosx
+      brew_install 'the_silver_searcher'
+    else
+      brew_install 'software-properties-common'
+      sh 'apt-add-repository ppa:mizuno-as/silversearcher-ag'
+      sh 'apt-get update'
+      brew_install 'silversearcher-ag'
+    end
   end
 
   desc 'Install iTerm'
@@ -146,7 +155,9 @@ namespace :install do
   desc 'Install reattach-to-user-namespace'
   task :reattach_to_user_namespace do
     step 'reattach-to-user-namespace'
-    brew_install 'reattach-to-user-namespace'
+    if os == :macosx
+      brew_install 'reattach-to-user-namespace'
+    end
   end
 
   desc 'Install tmux'
@@ -218,10 +229,14 @@ task :default do
 
   step 'symlink'
   link_file 'vim'                   , '~/.vim'
-  link_file 'tmux.conf'             , '~/.tmux.conf'
+  if os == :macosx
+    link_file 'tmux.conf'           , '~/.tmux.conf'
+  else
+    link_file 'tmux.linux.conf'     , '~/.tmux.conf'
+  end
   link_file 'vimrc'                 , '~/.vimrc'
   link_file 'vimrc.bundles'         , '~/.vimrc.bundles'
-  link_file 'zsrhc'                 , '~/.zshrc'
+  link_file 'zshrc'                 , '~/.zshrc'
   link_file 'rc'                    , '~/.rc'
   unless File.exist?(File.expand_path('~/.vimrc.local'))
     cp File.expand_path('vimrc.local'), File.expand_path('~/.vimrc.local'), :verbose => true
