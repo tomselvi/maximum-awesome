@@ -218,10 +218,7 @@ export SSH_AUTH_SOCK="$HOME/.ssh/ssh_auth_sock"
 
 if ! { [ -n "$TMUX" ]; } then
   while true; do
-    ART=`find ~/.ascii_art | wc -l`
-    ART=$(( $RANDOM / (32767 / ($ART - 1)) ))
-    clear
-    cat ~/.ascii_art/$ART
+    cat ~/.settings/fusi.txt
     echo "\nStart a new TMUX session? (y/n) or enter session ID\n"
     tmux ls
     echo ""

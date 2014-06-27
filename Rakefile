@@ -166,6 +166,12 @@ namespace :install do
     brew_install 'tmux'
   end
 
+  desc 'Install tig'
+  task :tig do
+    step 'tig'
+    brew_install 'tig'
+  end
+
   desc 'Install zsh'
   task :zsh do
       step 'zsh'
@@ -222,6 +228,7 @@ task :default do
   Rake::Task['install:ctags'].invoke
   Rake::Task['install:reattach_to_user_namespace'].invoke
   Rake::Task['install:tmux'].invoke
+  Rake::Task['install:tig'].invoke
   Rake::Task['install:macvim'].invoke
 
   # TODO install gem ctags?
