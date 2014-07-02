@@ -216,6 +216,18 @@ RPROMPT='$(info-git)%f'
 # }}}
 export SSH_AUTH_SOCK="$HOME/.ssh/ssh_auth_sock"
 
+# Your user settings here
+CR_USER=''
+
+if { [ -n "$CR_USER" ]; } then
+  alias cr='python ~/.settings/upload.py -e $CR_USER'
+else
+  alias cr='python ~/.settings/upload.py'
+  echo "\n\nWhen you have a chance, edit your ~/.zshrc file and enter your code review credentials to save some time and get rid of this message\n"
+  echo -n "Press any key to continue..." && read
+  clear
+fi
+
 if ! { [ -n "$TMUX" ]; } then
   while true; do
     cat ~/.settings/fusi.txt
