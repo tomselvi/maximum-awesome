@@ -230,7 +230,8 @@ fi
 
 if ! { [ -n "$TMUX" ]; } then
   while true; do
-    cat ~/.settings/fusi.txt
+    clear
+    python ~/.settings/image2term.py ~/.settings/fusi.jpg -t 100
     echo "\nStart a new TMUX session? (y/n) or enter session ID\n"
     tmux ls
     echo ""
