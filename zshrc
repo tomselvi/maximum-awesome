@@ -89,6 +89,75 @@ gitdifftig() {
   git diff $1 | tig
 }
 
+crbaseissueurl="http://cr.dev.fusi.io/"
+githubissueurl="https://github.com/tomselvi/fusi/issues/"
+
+githubaddcommit() {
+  if [ -d .git ]; then
+    echo "Please enter GitHub issue ID: "
+    read id
+    ghurl=$githubissueurl$id
+    echo "Please enter commit message: "
+    read message
+    git add -A
+    git commit -m "[$id] $message" -m "$ghurl"
+  else
+    git status
+  fi;
+}
+
+githubcommit() {
+  if [ -d .git ]; then
+    echo "Please enter GitHub issue ID: "
+    read id
+    ghurl=$githubissueurl$id
+    echo "Please enter commit message: "
+    read message
+    git commit -m "[$id] $message" -m "$ghurl"
+  else
+    git status
+  fi;
+}
+
+githubcommitreview() {
+  if [ -d .git ]; then
+    echo "Please enter GitHub issue ID: "
+    read id
+    ghurl=$githubissueurl$id
+    echo "Please enter commit message: "
+    read message
+    cr -t $message HEAD
+    echo "Please enter the issue number from the CR link above: "
+    read crid
+    git commit -m "[$id] $message" -m "$ghurl" -m "$crbaseissueurl$crid"
+  else
+    git status
+  fi;
+}
+
+githubcommitaddreview() {
+  if [ -d .git ]; then
+    echo "Please enter GitHub issue ID: "
+    read id
+    ghurl=$githubissueurl$id
+    echo "Please enter commit message: "
+    read message
+    git add -A
+    cr -t $message HEAD
+    echo "Please enter the issue number from the CR link above: "
+    read crid
+    git commit -m "[$id] $message" -m "$ghurl" -m "$crbaseissueurl$crid"
+  else
+    git status
+  fi;
+}
+
+alias ghac=githubaddcommit
+alias ghc=githubcommit
+alias ghcr=githubcommitreview
+alias ghacr=githubcommitaddreview
+
+
 alias g='git'
 alias gi='git init'
 alias gs='git status'
