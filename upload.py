@@ -518,6 +518,9 @@ group.add_option("-s", "--server", action="store", dest="server",
 group.add_option("-e", "--email", action="store", dest="email",
                  metavar="EMAIL", default=None,
                  help="The username to use. Will prompt if omitted.")
+group.add_option("--password", action="store", dest="password",
+                 metavar="PASSWORD", default=None,
+                 help="The password to use, experimental feature (by tom)")
 group.add_option("-H", "--host", action="store", dest="host",
                  metavar="HOST", default=None,
                  help="Overrides the Host header sent with all RPCs.")
@@ -595,7 +598,7 @@ group.add_option("--p4_user", action="store", dest="p4_user",
                  metavar="P4_USER", default=None,
                  help=("Perforce user"))
 
-def GetRpcServer(server, email=None, host_override=None, save_cookies=True,
+def GetRpcServer(server, email=None, password=None, host_override=None, save_cookies=True,
                  account_type=AUTH_ACCOUNT_TYPE):
   """Returns an instance of an AbstractRpcServer.
 
@@ -620,6 +623,9 @@ def GetRpcServer(server, email=None, host_override=None, save_cookies=True,
     if email is None:
       email = "test@example.com"
       logging.info("Using debug user %s.  Override with --email" % email)
+    if password is None:
+      password = "test"
+      logging.info("Using debug password %s.  Override with --password" % password)
     server = rpc_server_class(
         server,
         lambda: (email, "password"),
@@ -638,26 +644,26 @@ def GetRpcServer(server, email=None, host_override=None, save_cookies=True,
     # scoping rules.
     global keyring
     local_email = email
+    local_password = password
     if local_email is None:
       local_email = GetEmail("Email (login for uploading to %s)" % server)
-    password = None
     if keyring:
       try:
-        password = keyring.get_password(host, local_email)
+        local_password = keyring.get_password(host, local_email)
       except:
         # Sadly, we have to trap all errors here as
         # gnomekeyring.IOError inherits from object. :/
         print "Failed to get password from keyring"
         keyring = None
-    if password is not None:
+    if local_password is not None:
       print "Using password from system keyring."
     else:
-      password = getpass.getpass("Password for %s: " % local_email)
+      local_password = getpass.getpass("Password for %s: " % local_email)
       if keyring:
         answer = raw_input("Store password in system keyring?(y/N) ").strip()
         if answer == "y":
-          keyring.set_password(host, local_email, password)
-    return (local_email, password)
+          keyring.set_password(host, local_email, local_password)
+    return (local_email, local_password)
 
   return rpc_server_class(server,
                           GetUserCredentials,
@@ -2206,6 +2212,7 @@ def RealMain(argv, data=None):
     print "Upload server:", options.server, "(change with -s/--server)"
   rpc_server = GetRpcServer(options.server,
                             options.email,
+                            options.password,
                             options.host,
                             options.save_cookies,
                             options.account_type)

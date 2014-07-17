@@ -89,74 +89,7 @@ gitdifftig() {
   git diff $1 | tig
 }
 
-crbaseissueurl="http://cr.dev.fusi.io/"
-githubissueurl="https://github.com/tomselvi/fusi/issues/"
-
-githubaddcommit() {
-  if [ -d .git ]; then
-    echo "Please enter GitHub issue ID: "
-    read id
-    ghurl=$githubissueurl$id
-    echo "Please enter commit message: "
-    read message
-    git add -A
-    git commit -m "[$id] $message" -m "$ghurl"
-  else
-    git status
-  fi;
-}
-
-githubcommit() {
-  if [ -d .git ]; then
-    echo "Please enter GitHub issue ID: "
-    read id
-    ghurl=$githubissueurl$id
-    echo "Please enter commit message: "
-    read message
-    git commit -m "[$id] $message" -m "$ghurl"
-  else
-    git status
-  fi;
-}
-
-githubcommitreview() {
-  if [ -d .git ]; then
-    echo "Please enter GitHub issue ID: "
-    read id
-    ghurl=$githubissueurl$id
-    echo "Please enter commit message: "
-    read message
-    cr -t $message HEAD
-    echo "Please enter the issue number from the CR link above: "
-    read crid
-    git commit -m "[$id] $message" -m "$ghurl" -m "$crbaseissueurl$crid"
-  else
-    git status
-  fi;
-}
-
-githubcommitaddreview() {
-  if [ -d .git ]; then
-    echo "Please enter GitHub issue ID: "
-    read id
-    ghurl=$githubissueurl$id
-    echo "Please enter commit message: "
-    read message
-    git add -A
-    cr -t $message HEAD
-    echo "Please enter the issue number from the CR link above: "
-    read crid
-    git commit -m "[$id] $message" -m "$ghurl" -m "$crbaseissueurl$crid"
-  else
-    git status
-  fi;
-}
-
-alias ghac=githubaddcommit
-alias ghc=githubcommit
-alias ghcr=githubcommitreview
-alias ghacr=githubcommitaddreview
-
+alias ghcr='python2.6 ~/.settings/cr_helper.py'
 
 alias g='git'
 alias gi='git init'
@@ -284,18 +217,6 @@ RPROMPT='$(info-git)%f'
 # }}}
 # }}}
 export SSH_AUTH_SOCK="$HOME/.ssh/ssh_auth_sock"
-
-# Your user settings here
-CR_USER=''
-
-if { [ -n "$CR_USER" ]; } then
-  alias cr='python ~/.settings/upload.py -e $CR_USER'
-else
-  alias cr='python ~/.settings/upload.py'
-  echo "\n\nWhen you have a chance, edit your ~/.zshrc file and enter your code review credentials to save some time and get rid of this message\n"
-  echo -n "Press any key to continue..." && read
-  clear
-fi
 
 if ! { [ -n "$TMUX" ]; } then
   while true; do
