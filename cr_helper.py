@@ -64,12 +64,10 @@ key = getpass.getpass("Enter your system password: ")
 if not os.path.isfile(gitdir+"/.ghcr"):
   config.add_section('codereview')
   review_server = raw_input("Enter your CodeReview host (ie: cr.dev.fusi.io): ")
-  upload_path = raw_input("Enter the upload.py script path (ie: ~/.settings/upload.py): ")
   github_repo = raw_input("Enter the GitHub repository (ie: tomselvi/fusi): ")
   username = raw_input("Enter your CodeReview username: ")
   password = getpass.getpass("Enter your CodeReview password: ")
   config.set('codereview', 'review_server', review_server)
-  config.set('codereview', 'upload_path', upload_path)
   config.set('codereview', 'github_repo', github_repo)
   config.set('codereview', 'username', username)
   config.set('codereview', 'password', hexlify(enc(key, password)))
@@ -79,14 +77,13 @@ if not os.path.isfile(gitdir+"/.ghcr"):
 else:
   config.read(gitdir+"/.ghcr")
   review_server = config.get('codereview', 'review_server')
-  upload_path = config.get('codereview', 'upload_path')
   github_repo = config.get('codereview', 'github_repo')
   username = config.get('codereview', 'username')
   password = dec(key, unhexlify(config.get('codereview', 'password')))
 
 if issue is not None:
   if message is None: message = raw_input("Enter a patch-set message: ")
-  proc = subprocess.Popen('python '+upload_path+' --assume_yes --server '+review_server+' --email '+username+' --password '+password+' --title "'+message+'" --issue '+issue+' HEAD', stdout=subprocess.PIPE, shell=True)
+  proc = subprocess.Popen('python ~/.settings/upload.py --assume_yes --server '+review_server+' --email '+username+' --password '+password+' --title "'+message+'" --issue '+issue+' HEAD', stdout=subprocess.PIPE, shell=True)
   (cr_response, err) = proc.communicate()
   try:
     cr_url = re.findall(r"http:\/\/\S+", cr_response)[0]
@@ -99,7 +96,7 @@ if message is None: message = raw_input("Enter a Git commit message: ")
 if issues is None: issues = raw_input("Enter Git issues involved, comma seperated: ")
 issues = re.findall("\d+", issues)
 message = "["+",".join(issues)+"] "+message
-proc = subprocess.Popen('python '+upload_path+' --assume_yes --server '+review_server+' --email '+username+' --password '+password+' --title "'+message+'" HEAD', stdout=subprocess.PIPE, shell=True)
+proc = subprocess.Popen('python ~/.settings/upload.py --assume_yes --server '+review_server+' --email '+username+' --password '+password+' --title "'+message+'" HEAD', stdout=subprocess.PIPE, shell=True)
 (cr_response, err) = proc.communicate()
 if err is not None:
   print "Error: Issue uploading to CR, check your network status and credentials!"
