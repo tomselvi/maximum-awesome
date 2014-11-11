@@ -40,7 +40,7 @@ parser = OptionParser()
 parser.add_option("-m", "--message", action="store", dest="message",
                   help="commit & issue message", default=None, metavar="MESSAGE")
 parser.add_option("-g", "--github_issues", action="store", dest="issues",
-                  help="GitHub issues involved with commit", default=None, metavar="ISSUES")
+                  help="Pivotal Tracker stories involved with commit", default=None, metavar="ISSUES")
 parser.add_option("-c", "--codereview_issue", action="store", dest="issue",
                   help="if set, will publish as a patch-set to issue", default=None, metavar="ISSUE")
 
@@ -64,7 +64,7 @@ key = getpass.getpass("Enter your system password: ")
 if not os.path.isfile(gitdir+"/.ghcr"):
   config.add_section('codereview')
   review_server = raw_input("Enter your CodeReview host (ie: cr.dev.fusi.io): ")
-  github_repo = raw_input("Enter the GitHub repository (ie: tomselvi/fusi): ")
+  github_repo = raw_input("Enter the Pivotal Tracker project ID (ie: 1207456): ")
   username = raw_input("Enter your CodeReview username: ")
   password = getpass.getpass("Enter your CodeReview password: ")
   config.set('codereview', 'review_server', review_server)
@@ -93,7 +93,7 @@ if issue is not None:
   sys.exit()
 
 if message is None: message = raw_input("Enter a Git commit message: ")
-if issues is None: issues = raw_input("Enter Git issues involved, comma seperated: ")
+if issues is None: issues = raw_input("Enter Pivotal Tracker stories involved, comma seperated: ")
 issues = re.findall("\d+", issues)
 message = "["+",".join(issues)+"] "+message
 proc = subprocess.Popen('python ~/.settings/upload.py --assume_yes --server '+review_server+' --email '+username+' --password '+password+' --title "'+message+'" HEAD', stdout=subprocess.PIPE, shell=True)
@@ -108,7 +108,7 @@ except Exception:
   print "Error: Issue uploading to CR, check your network status and credentials!"
   sys.exit()
 commit_command = 'git commit -m "'+message+'" -m "'+cr_url+'"'
-for issue in issues: commit_command += ' -m "https://www.github.com/'+github_repo+'/issues/'+issue+'"'
+for issue in issues: commit_command += ' -m "https://www.pivotaltracker.com/n/projects/'+github_repo+'/stories/'+issue+'"'
 proc = subprocess.Popen(commit_command, stdout=subprocess.PIPE, shell=True)
 (commit_response, err) = proc.communicate()
 if err is not None:

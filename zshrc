@@ -131,7 +131,7 @@ alias ping-scan='nmap -sP -PE -R'
 alias port-scan='nmap -p'
 
 # fusi specific
-alias cdf='cd ~/html/fusi'
+alias cdf='cd ~/Work/fusi'
 
 # }}}
 

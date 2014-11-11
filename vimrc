@@ -122,3 +122,6 @@ if filereadable(expand("~/.vimrc.local"))
   " noremap! jj <ESC>
   source ~/.vimrc.local
 endif
+
+let g:syntastic_cpp_compiler = 'g++'
+let g:syntastic_cpp_compiler_options = ' -std=c++11 -stdlib=libc++'
